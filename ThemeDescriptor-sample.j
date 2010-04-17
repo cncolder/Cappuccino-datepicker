@@ -48,14 +48,32 @@
 
     // TODO Add support for font.
     [datepicker setValue:[CPFont systemFontOfSize:12.0] forThemeAttribute:@"font" inState:CPThemeStateBezeled];
+    [datepicker setValue:[CPColor blackColor] forThemeAttribute:@"text-color"];
 
     [datepicker setValue:CGInsetMake(7.0, 6.0, 5.0, 6.0) forThemeAttribute:@"content-inset" inState:CPThemeStateBezeled];
 
-    [datepicker setValue:CGInsetMake(4.0, 4.0, 3.0, 4.0) forThemeAttribute:@"bezel-inset" inState:CPThemeStateBezeled];
-    [datepicker setValue:CGInsetMake(0.0, 0.0, 0.0, 0.0) forThemeAttribute:@"bezel-inset" inState:CPThemeStateBezeled|CPThemeStateEditing];
+    [datepicker setValue:CGInsetMake(4.0, 16.0, 3.0, 4.0) forThemeAttribute:@"bezel-inset" inState:CPThemeStateBezeled];
+    [datepicker setValue:CGInsetMake(0.0, 13.0, 0.0, 0.0) forThemeAttribute:@"bezel-inset" inState:CPThemeStateBezeled|CPThemeStateEditing];
 
-    [datepicker setValue:CGSizeMake(13, 23) forThemeAttribute:@"stepper-size"];
-    [datepicker setValue:CGInsetMake(3.0, 4.0, 3.0, 0.0) forThemeAttribute:@"stepper-inset" inState:CPThemeStateBezeled];
+    [datepicker setValue:CGSizeMake(16.0, 29.0) forThemeAttribute:@"stepper-size"];
+    [datepicker setValue:CGInsetMake(3.0, 0.0, 2.0, 4.0) forThemeAttribute:@"stepper-inset" inState:CPThemeStateBezeled];
+
+    var upBezel = [CPColor colorWithPatternImage:[_CPCibCustomResource imageResourceWithName:"datepicker-stepper-up.png" size:CGSizeMake(12.0, 10.0)]],
+        pushedUpBezel = [CPColor colorWithPatternImage:[_CPCibCustomResource imageResourceWithName:"datepicker-stepper-up-highlighted.png" size:CGSizeMake(12.0, 10.0)]],
+        downBezel = [CPColor colorWithPatternImage:[_CPCibCustomResource imageResourceWithName:"datepicker-stepper-down.png" size:CGSizeMake(12.0, 12.0)]],
+        pushedDownBezel = [CPColor colorWithPatternImage:[_CPCibCustomResource imageResourceWithName:"datepicker-stepper-down-highlighted.png" size:CGSizeMake(12.0, 12.0)]],
+        dividerBezel = [CPColor colorWithPatternImage:[_CPCibCustomResource imageResourceWithName:"datepicker-divider-bezel-color.png" size:CGSizeMake(12.0, 1.0)]];
+
+    [datepicker setValue:CGPointMake(0, 0) forThemeAttribute:@"stepper-up-offset" inState:CPThemeStateBezeled];
+    [datepicker setValue:upBezel forThemeAttribute:@"stepper-up-bezel-color" inState:CPThemeStateBezeled];
+    [datepicker setValue:pushedUpBezel forThemeAttribute:@"stepper-up-bezel-color" inState:CPThemeStateBezeled|CPThemeStateHighlighted];
+
+    [datepicker setValue:CGPointMake(0, 11) forThemeAttribute:@"stepper-down-offset" inState:CPThemeStateBezeled];
+    [datepicker setValue:downBezel forThemeAttribute:@"stepper-down-bezel-color" inState:CPThemeStateBezeled];
+    [datepicker setValue:pushedDownBezel forThemeAttribute:@"stepper-down-bezel-color" inState:CPThemeStateBezeled|CPThemeStateHighlighted];
+
+    [datepicker setValue:CGPointMake(0, 10) forThemeAttribute:@"stepper-divider-offset" inState:CPThemeStateBezeled];
+    [datepicker setValue:dividerBezel forThemeAttribute:@"stepper-divider-bezel-color" inState:CPThemeStateNormal];
 
     return datepicker;
 }

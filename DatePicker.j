@@ -58,8 +58,8 @@ DatePickerDisplayPresetTime = 2;
 
 + (id)themeAttributes
 {
-    return [CPDictionary dictionaryWithObjects:[CGInsetMakeZero(), CGInsetMake(2.0, 2.0, 2.0, 2.0), [CPNull null], CGSizeMake(18, 23), CGInsetMake(2.0, 2.0, 2.0, 2.0)]
-                                       forKeys:[@"bezel-inset", @"content-inset", @"bezel-color", @"stepper-size", @"stepper-inset"]];
+    return [CPDictionary dictionaryWithObjects:[CGInsetMakeZero(), CGInsetMake(2.0, 2.0, 2.0, 2.0), [CPNull null], CGSizeMake(18, 23), CGInsetMake(2.0, 2.0, 2.0, 2.0),  [CPNull null], CGPointMake(0, 0), [CPNull null], CGPointMake(0, 11), [CPNull null], CGPointMake(0, 10)]
+                                       forKeys:[@"bezel-inset", @"content-inset", @"bezel-color", @"stepper-size", @"stepper-inset", @"stepper-up-bezel-color", @"stepper-up-offset", @"stepper-down-bezel-color",  @"stepper-down-offset", @"stepper-divider-bezel-color", @"stepper-divider-offset"]];
 }
 
 - (id)initWithFrame:aFrame
@@ -67,8 +67,6 @@ DatePickerDisplayPresetTime = 2;
     self = [super initWithFrame:aFrame];
     if(self)
     {
-        [self setTheme:[CPTheme defaultTheme]];
-
         _theView = [[CPView alloc] initWithFrame:CGRectMakeZero()];
 
         inputManager = self;//[[DatePickerInputManager alloc] init];
@@ -90,6 +88,8 @@ DatePickerDisplayPresetTime = 2;
         [_theStepper setEnabled:NO];
         [_theStepper setMaxValue:9999];
         [_theStepper setMinValue:-1];
+
+        [self setTheme:[CPTheme defaultTheme]];
 
         [self setBezeled:YES];
     }
@@ -116,6 +116,29 @@ DatePickerDisplayPresetTime = 2;
     if ([_delegate respondsToSelector:@selector(datePickerDidLoseFocus:)]){
         [defaultCenter addObserver:_delegate selector:@selector(datePickerDidLoseFocus:) name:"datePickerDidLoseFocusNotification" object:self];
     }
+}
+
+- (void)setTheme:(CPTheme)aTheme
+{
+    [super setTheme:aTheme];
+
+    @each(view in [self subviews])
+        [view setTheme:aTheme];
+
+    var upButton = [_theStepper upButton],
+        downButton = [_theStepper downButton],
+        dividerView = [_theStepper dividerView];
+
+    [upButton setValue:[self valueForThemeAttribute:@"stepper-up-bezel-color" inState:CPThemeStateBezeled] forThemeAttribute:@"bezel-color" inState:CPThemeStateBordered];
+    [upButton setValue:[self valueForThemeAttribute:@"stepper-up-bezel-color" inState:CPThemeStateBezeled|CPThemeStateHighlighted] forThemeAttribute:@"bezel-color" inState:CPThemeStateBordered|CPThemeStateHighlighted];
+    [upButton setFrameOrigin:[self currentValueForThemeAttribute:@"stepper-up-offset"]];
+
+    [downButton setValue:[self valueForThemeAttribute:@"stepper-down-bezel-color" inState:CPThemeStateBezeled] forThemeAttribute:@"bezel-color" inState:CPThemeStateBordered];
+    [downButton setValue:[self valueForThemeAttribute:@"stepper-down-bezel-color" inState:CPThemeStateBezeled|CPThemeStateHighlighted] forThemeAttribute:@"bezel-color" inState:CPThemeStateBordered|CPThemeStateHighlighted];
+    [downButton setFrameOrigin:[self currentValueForThemeAttribute:@"stepper-down-offset"]];
+
+    [dividerView setBackgroundColor:[self valueForThemeAttribute:@"stepper-divider-bezel-color" inState:CPThemeStateNormal]];
+    [dividerView setFrameOrigin:[self currentValueForThemeAttribute:@"stepper-divider-offset"]];
 }
 
 // Setting the Bezel Style
@@ -177,19 +200,16 @@ DatePickerDisplayPresetTime = 2;
 
     bounds.origin.x = bounds.size.width - stepperSize.width + stepperInset.left;
     bounds.origin.y = stepperInset.top;
-    bounds.size.width = stepperSize.width;
-    bounds.size.height = stepperSize.height;
+    bounds.size.width = stepperSize.width - stepperInset.right;
+    bounds.size.height = stepperSize.height - stepperInset.bottom;
 
     return bounds;
 }
 
 - (void)layoutSubviews
 {
-    var theViewRect = CGRectMakeCopy([self bounds]),
+    var theViewRect = [self bezelRectForBounds:CGRectMakeCopy([self bounds])],
         theStepperRect = [self stepperRectForBounds:CGRectMakeCopy([self bounds])];
-
-    theViewRect.size.width -= theStepperRect.size.width;
-    theViewRect = [self bezelRectForBounds:theViewRect];
 
     [_theView setFrame:theViewRect];
     [_theStepper setFrame:theStepperRect];
@@ -208,6 +228,8 @@ DatePickerDisplayPresetTime = 2;
             continue;
         componentRect.size.width = [subview bounds].size.width;
         [subview setFrame:componentRect];
+        [subview setFont:[self currentValueForThemeAttribute:@"font"]];
+        [subview setTextColor:[self currentValueForThemeAttribute:@"text-color"]];
         // Hack to 'squeeze' divider text fields a little.
         componentRect.origin.x += 2 + (isSegement ? componentRect.size.width-4 : 4);
     }
@@ -941,7 +963,7 @@ DatePickerDisplayPresetTime = 2;
 
 - (void)makeInactive
 {
-    [self setBackgroundColor:[CPColor whiteColor]];
+    [self setBackgroundColor:[CPColor clearColor]];
     if([self dateType] == 10)
         return;
     //now format the number like it should look...
