@@ -46,13 +46,16 @@
     [datepicker setValue:bezelColor forThemeAttribute:@"bezel-color" inState:CPThemeStateBezeled];
     [datepicker setValue:bezelFocusedColor forThemeAttribute:@"bezel-color" inState:CPThemeStateBezeled|CPThemeStateEditing];
 
-    // TODO: Add support for these.
-
+    // TODO Add support for font.
     [datepicker setValue:[CPFont systemFontOfSize:12.0] forThemeAttribute:@"font" inState:CPThemeStateBezeled];
-    [datepicker setValue:CGInsetMake(9.0, 7.0, 5.0, 8.0) forThemeAttribute:@"content-inset" inState:CPThemeStateBezeled];
+
+    [datepicker setValue:CGInsetMake(7.0, 6.0, 5.0, 6.0) forThemeAttribute:@"content-inset" inState:CPThemeStateBezeled];
 
     [datepicker setValue:CGInsetMake(4.0, 4.0, 3.0, 4.0) forThemeAttribute:@"bezel-inset" inState:CPThemeStateBezeled];
     [datepicker setValue:CGInsetMake(0.0, 0.0, 0.0, 0.0) forThemeAttribute:@"bezel-inset" inState:CPThemeStateBezeled|CPThemeStateEditing];
+
+    [datepicker setValue:CGSizeMake(13, 23) forThemeAttribute:@"stepper-size"];
+    [datepicker setValue:CGInsetMake(3.0, 4.0, 3.0, 0.0) forThemeAttribute:@"stepper-inset" inState:CPThemeStateBezeled];
 
     return datepicker;
 }

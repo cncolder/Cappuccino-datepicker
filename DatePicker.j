@@ -58,8 +58,8 @@ DatePickerDisplayPresetTime = 2;
 
 + (id)themeAttributes
 {
-    return [CPDictionary dictionaryWithObjects:[CGInsetMakeZero(), CGInsetMake(2.0, 2.0, 2.0, 2.0), [CPNull null]]
-                                       forKeys:[@"bezel-inset", @"content-inset", @"bezel-color"]];
+    return [CPDictionary dictionaryWithObjects:[CGInsetMakeZero(), CGInsetMake(2.0, 2.0, 2.0, 2.0), [CPNull null], CGSizeMake(18, 23), CGInsetMake(2.0, 2.0, 2.0, 2.0)]
+                                       forKeys:[@"bezel-inset", @"content-inset", @"bezel-color", @"stepper-size", @"stepper-inset"]];
 }
 
 - (id)initWithFrame:aFrame
@@ -69,12 +69,12 @@ DatePickerDisplayPresetTime = 2;
     {
         [self setTheme:[CPTheme defaultTheme]];
 
-        _theView = [[CPView alloc] initWithFrame:CGRectMake(4, 3, CGRectGetWidth(aFrame) - 20, 23)];
+        _theView = [[CPView alloc] initWithFrame:CGRectMakeZero()];
 
         inputManager = self;//[[DatePickerInputManager alloc] init];
         [inputManager setSuperController:self];
 
-        _theStepper = [[Stepper alloc] initWithFrame:CGRectMake(aFrame.size.width -13, 3, 13, 23)];
+        _theStepper = [[Stepper alloc] initWithFrame:CGRectMakeZero()];
         [_theStepper setTarget:self];
         [_theStepper setAction:@selector(stepperAction:)];
 
@@ -140,21 +140,77 @@ DatePickerDisplayPresetTime = 2;
     return [self hasThemeState:CPThemeStateBezeled];
 }
 
+- (CGRect)contentRectForBounds:(CGRect)bounds
+{
+    var contentInset = [self currentValueForThemeAttribute:@"content-inset"];
+
+    if (!contentInset)
+        return bounds;
+
+    bounds.origin.x += contentInset.left;
+    bounds.origin.y += contentInset.top;
+    bounds.size.width -= contentInset.left + contentInset.right;
+    bounds.size.height -= contentInset.top + contentInset.bottom;
+
+    return bounds;
+}
+
+- (CGRect)bezelRectForBounds:(CGRect)bounds
+{
+    var bezelInset = [self currentValueForThemeAttribute:@"bezel-inset"];
+
+    if (CGInsetIsEmpty(bezelInset))
+        return bounds;
+
+    bounds.origin.x += bezelInset.left;
+    bounds.origin.y += bezelInset.top;
+    bounds.size.width -= bezelInset.left + bezelInset.right;
+    bounds.size.height -= bezelInset.top + bezelInset.bottom;
+
+    return bounds;
+}
+
+- (CGRect)stepperRectForBounds:(CGRect)bounds
+{
+    var stepperSize = [self currentValueForThemeAttribute:@"stepper-size"],
+        stepperInset = [self currentValueForThemeAttribute:@"stepper-inset"];
+
+    bounds.origin.x = bounds.size.width - stepperSize.width + stepperInset.left;
+    bounds.origin.y = stepperInset.top;
+    bounds.size.width = stepperSize.width;
+    bounds.size.height = stepperSize.height;
+
+    return bounds;
+}
+
 - (void)layoutSubviews
 {
+    var theViewRect = CGRectMakeCopy([self bounds]),
+        theStepperRect = [self stepperRectForBounds:CGRectMakeCopy([self bounds])];
+
+    theViewRect.size.width -= theStepperRect.size.width;
+    theViewRect = [self bezelRectForBounds:theViewRect];
+
+    [_theView setFrame:theViewRect];
+    [_theStepper setFrame:theStepperRect];
+
     [_theView setBackgroundColor:[self currentValueForThemeAttribute:@"bezel-color"]];
 
     [super layoutSubviews];
-}
 
-//this method doesn't actually work... yet...
-- (void)addDateSegmentOfType:(id)segmentType withInitialValue:(CPString)stringValue withSeperatorAtEnd:(CPString)seperator
-{
-    var aFrameSize = [self makeFrameForType:segmentType];
-
-    var newSegment = [[DateSegment alloc] initWithFrame:CGRectMake(6, 7, 20, 18)];
-    [dateSegmentes addObject:newSegment];
-    [self addSubview: newSegment];
+    // Layout the components.
+    var componentRect = [self contentRectForBounds:CGRectMakeCopy([self bounds])];
+    @each(var subview in [self subviews])
+    {
+        var isSegement = [subview class] == DateSegment,
+            isTextField = [subview class] == CPTextField;
+        if (!isSegement && !isTextField)
+            continue;
+        componentRect.size.width = [subview bounds].size.width;
+        [subview setFrame:componentRect];
+        // Hack to 'squeeze' divider text fields a little.
+        componentRect.origin.x += 2 + (isSegement ? componentRect.size.width-4 : 4);
+    }
 }
 
 - (void)setDisplayPreset:(int)type
@@ -168,12 +224,6 @@ DatePickerDisplayPresetTime = 2;
         [_theMonthField setInputManager: self];
         [_theMonthField setSuperController:self];
         [_theMonthField setDateType:1];
-        //[_theMonthField setStringValue: [self _mutableDate].getMonth() + 1];
-        if(CGRectGetHeight([self frame]) - CGRectGetHeight([_theMonthField frame]) < 14)
-        {
-            [self setFrame:CGRectMake(CGRectGetMinX([self frame]), CGRectGetMinY([self frame]), CGRectGetWidth([self frame]), CGRectGetHeight([_theMonthField frame]) + 14)];
-            [_theView setFrame:CGRectMake(CGRectGetMinX([_theView frame]), CGRectGetMinY([_theView frame]), CGRectGetWidth([_theView frame]), CGRectGetHeight([_theMonthField frame]) + 6)];
-        }
 
         var _theDayField = [[DateSegment alloc] initWithFrame:CGRectMake(28, 7, 20, 18)];
         [_theDayField setStringValue:@"00"];
@@ -193,14 +243,6 @@ DatePickerDisplayPresetTime = 2;
         [_theYearField setDateType:3];
         //[_theYearField setStringValue: [self _mutableDate].getFullYear()];
 
-        [self addSubview: _theMonthField];
-        [self addSubview: _theDayField];
-        [self addSubview: _theYearField];
-        [segments addObject:_theMonthField];
-        [segments addObject:_theDayField];
-        [segments addObject:_theYearField];
-
-
         var slash1 = [[CPTextField alloc] initWithFrame:CGRectMake(23, 7, 15, 18)];
         [slash1 setStringValue:@"/"];
         [slash1 sizeToFit];
@@ -209,9 +251,14 @@ DatePickerDisplayPresetTime = 2;
         [slash2 setStringValue:@"/"];
         [slash2 sizeToFit];
 
+        [self addSubview: _theMonthField];
         [self addSubview:slash1];
+        [self addSubview: _theDayField];
         [self addSubview:slash2];
-
+        [self addSubview: _theYearField];
+        [segments addObject:_theMonthField];
+        [segments addObject:_theDayField];
+        [segments addObject:_theYearField];
     }
     else if(type == DatePickerDisplayPresetTime)
     {
@@ -222,12 +269,6 @@ DatePickerDisplayPresetTime = 2;
         [hoursField setInputManager: self];
         [hoursField setSuperController:self];
         [hoursField setDateType:9];
-
-        if(CGRectGetHeight([self frame]) - CGRectGetHeight([hoursField frame]) < 14)
-        {
-            [self setFrame:CGRectMake(CGRectGetMinX([self frame]), CGRectGetMinY([self frame]), CGRectGetWidth([self frame]), CGRectGetHeight([hoursField frame]) + 14)];
-            [_theView setFrame:CGRectMake(CGRectGetMinX([_theView frame]), CGRectGetMinY([_theView frame]), CGRectGetWidth([_theView frame]), CGRectGetHeight([hoursField frame]) + 6)];
-        }
 
         /*if([self _mutableDate].getHours() > 12){
             var shrotHurStr = [self _mutableDate].getHours() - 12;
@@ -258,21 +299,17 @@ DatePickerDisplayPresetTime = 2;
         //var ampmstr = ([self _mutableDate].getHours() > 11) ? @"PM" : "AM";
         //[AMPMField setStringValue: ampmstr];
 
+        var slash1 = [[CPTextField alloc] initWithFrame:CGRectMake(23, 7, 15, 18)];
+        [slash1 setStringValue:@":"];
+        [slash1 sizeToFit];
+
         [self addSubview: hoursField];
+        [self addSubview:slash1];
         [self addSubview: minutesField];
         [self addSubview: AMPMField];
         [segments addObject: hoursField];
         [segments addObject: minutesField];
         [segments addObject: AMPMField];
-
-        var slash1 = [[CPTextField alloc] initWithFrame:CGRectMake(23, 7, 15, 18)];
-        [slash1 setStringValue:@":"];
-
-        //var slash2 = [[CPTextField alloc] initWithFrame:CGRectMake(44, 7, 15, 18)];
-        //[slash2 setStringValue:@":"];
-
-        [self addSubview:slash1];
-        //[self addSubview:slash2];
     }
 
     [self updatePickerDisplay];
@@ -406,18 +443,11 @@ DatePickerDisplayPresetTime = 2;
     focused = val;
 
     if (focused)
-    {
         [self setThemeState:CPThemeStateEditing];
-
-        [_theView setFrame:CGRectMake([_theView frame].origin.x - 4, [_theView frame].origin.y - 3, [_theView frame].size.width + 8, [_theView frame].size.height + 6)];
-        //[inputManager setActiveDateSegment:[segments objectAtIndex:0]];
-    }
     else
-    {
         [self unsetThemeState:CPThemeStateEditing];
 
-        [_theView setFrame:CGRectMake([_theView frame].origin.x + 4, [_theView frame].origin.y + 3, [_theView frame].size.width - 8, [_theView frame].size.height - 6)];
-    }
+    [self setNeedsLayout];
 }
 
 - (int)maxDays
