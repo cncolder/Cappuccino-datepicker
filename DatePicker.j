@@ -20,7 +20,8 @@
 @import <AppKit/CPControl.j>
 @import "Stepper.j"
 
-CPLogRegister(CPLogConsole);
+DatePickerDisplayPresetDate = 1;
+DatePickerDisplayPresetTime = 2;
 
 @implementation DatePicker : CPControl
 {
@@ -148,9 +149,10 @@ CPLogRegister(CPLogConsole);
     [self addSubview: newSegment];
 }
 
-- (void)displayPreset:(id)type
+- (void)setDisplayPreset:(int)type
 {
-    if(type == 1){ //type is stardard date
+    if (type == DatePickerDisplayPresetDate)
+    {
         var _theMonthField = [[DateSegment alloc] initWithFrame:CGRectMake(6, 7, 20, 18)];
         [_theMonthField setStringValue:@"00"];
         [_theMonthField sizeToFit];
@@ -202,7 +204,9 @@ CPLogRegister(CPLogConsole);
         [self addSubview:slash1];
         [self addSubview:slash2];
 
-    }else if(type == 2){ //type is stardard time
+    }
+    else if(type == DatePickerDisplayPresetTime)
+    {
         var hoursField = [[DateSegment alloc] initWithFrame:CGRectMake(6, 7, 20, 18)];
         [hoursField setStringValue:@"00"];
         [hoursField sizeToFit];
@@ -261,9 +265,6 @@ CPLogRegister(CPLogConsole);
 
         [self addSubview:slash1];
         //[self addSubview:slash2];
-
-
-
     }
 
     [self updatePickerDisplay];
@@ -353,8 +354,11 @@ CPLogRegister(CPLogConsole);
 
 - (BOOL)becomeFirstResponder
 {
+    [self setThemeState:CPThemeStateEditing];
+
     if(!currentFocusedSegment)
         [self setActiveDateSegment: [segments objectAtIndex:0]];
+
     return YES;
 }
 
@@ -366,14 +370,11 @@ CPLogRegister(CPLogConsole);
 
 - (BOOL)resignFirstResponder
 {
-    //[super resignFirstResponder];
-    //[self setFocused:NO];
-//  console.log("resign");
-//  [[self window] selectNextKeyView:self];
-    //[[self window] sendEvent:anEvent]; //it doesn't work unless the event is sent twice... idk why.
+    [self unsetThemeState:CPThemeStateEditing];
+
     [self setPrevActiveDateSegment:[self activeDateSegment]];
     [self setActiveDateSegment:nil];
-    //_dontsetfirsttome = NO;
+
     [[CPNotificationCenter defaultCenter] postNotificationName:"datePickerDidLoseFocusNotification" object:superController userInfo:nil];
     return YES;
 }
