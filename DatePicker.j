@@ -34,8 +34,6 @@ DatePickerDisplayPresetTime = 2;
     CPDate      _minDate;
     CPDate      _maxDate;
 
-    id          bezel;
-    id          bezelFocused;
     id          dateSegmentFocused;
 
     BOOL        focused @accessors;
@@ -53,43 +51,25 @@ DatePickerDisplayPresetTime = 2;
 
 }
 
++ (CPString)themeClass
+{
+    return @"datepicker";
+}
+
++ (id)themeAttributes
+{
+    return [CPDictionary dictionaryWithObjects:[CGInsetMakeZero(), CGInsetMake(2.0, 2.0, 2.0, 2.0), [CPNull null]]
+                                       forKeys:[@"bezel-inset", @"content-inset", @"bezel-color"]];
+}
+
 - (id)initWithFrame:aFrame
 {
     self = [super initWithFrame:aFrame];
-    if(self){
+    if(self)
+    {
+        [self setTheme:[CPTheme defaultTheme]];
+
         _theView = [[CPView alloc] initWithFrame:CGRectMake(4, 3, CGRectGetWidth(aFrame) - 20, 23)];
-
-        //bezel = [CPColor whiteColor];
-        //bezelFocused = [CPColor whiteColor];
-
-        bezel = [CPColor colorWithPatternImage:[[CPNinePartImage alloc] initWithImageSlices:
-            [
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-0.png" size:CGSizeMake(2.0, 3.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-1.png" size:CGSizeMake(1.0, 3.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-2.png" size:CGSizeMake(2.0, 3.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-3.png" size:CGSizeMake(2.0, 1.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-4.png" size:CGSizeMake(1.0, 1.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-5.png" size:CGSizeMake(2.0, 1.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-6.png" size:CGSizeMake(2.0, 2.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-7.png" size:CGSizeMake(1.0, 2.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-8.png" size:CGSizeMake(2.0, 2.0)]
-            ]]];
-
-         bezelFocused = [CPColor colorWithPatternImage:[[CPNinePartImage alloc] initWithImageSlices:
-            [
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-0.png" size:CGSizeMake(6.0,  7.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-1.png" size:CGSizeMake(1.0,  7.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-2.png" size:CGSizeMake(6.0,  7.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-3.png" size:CGSizeMake(6.0,  1.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-4.png" size:CGSizeMake(1.0,  1.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-5.png" size:CGSizeMake(6.0,  1.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-6.png" size:CGSizeMake(6.0,  5.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-7.png" size:CGSizeMake(1.0,  5.0)],
-                [[CPImage alloc] initByReferencingFile:"Frameworks/AppKit/Resources/Aristo.blend/Resources/textfield-bezel-square-focused-8.png" size:CGSizeMake(6.0,  5.0)]
-            ]]];
-
-        [_theView setBackgroundColor:bezel];
-
 
         inputManager = self;//[[DatePickerInputManager alloc] init];
         [inputManager setSuperController:self];
@@ -101,7 +81,6 @@ DatePickerDisplayPresetTime = 2;
         [self addSubview:_theView];
         [self addSubview:_theStepper];
 
-
         _date    = [CPDate dateWithTimeIntervalSinceNow:0];
         _maxDate = [CPDate distantFuture];
         _minDate = [CPDate distantPast];
@@ -112,7 +91,7 @@ DatePickerDisplayPresetTime = 2;
         [_theStepper setMaxValue:9999];
         [_theStepper setMinValue:-1];
 
-
+        [self setBezeled:YES];
     }
 
     return self;
@@ -137,6 +116,35 @@ DatePickerDisplayPresetTime = 2;
     if ([_delegate respondsToSelector:@selector(datePickerDidLoseFocus:)]){
         [defaultCenter addObserver:_delegate selector:@selector(datePickerDidLoseFocus:) name:"datePickerDidLoseFocusNotification" object:self];
     }
+}
+
+// Setting the Bezel Style
+/*!
+    Sets whether the textfield will have a bezeled border.
+    @param shouldBeBezeled \c YES means the textfield will draw a bezeled border
+*/
+- (void)setBezeled:(BOOL)shouldBeBezeled
+{
+    if (shouldBeBezeled)
+        [self setThemeState:CPThemeStateBezeled];
+    else
+        [self unsetThemeState:CPThemeStateBezeled];
+    [self setNeedsLayout];
+}
+
+/*!
+    Returns \c YES if the textfield draws a bezeled border.
+*/
+- (BOOL)isBezeled
+{
+    return [self hasThemeState:CPThemeStateBezeled];
+}
+
+- (void)layoutSubviews
+{
+    [_theView setBackgroundColor:[self currentValueForThemeAttribute:@"bezel-color"]];
+
+    [super layoutSubviews];
 }
 
 //this method doesn't actually work... yet...
@@ -397,12 +405,17 @@ DatePickerDisplayPresetTime = 2;
 
     focused = val;
 
-    if(focused){
+    if (focused)
+    {
+        [self setThemeState:CPThemeStateEditing];
+
         [_theView setFrame:CGRectMake([_theView frame].origin.x - 4, [_theView frame].origin.y - 3, [_theView frame].size.width + 8, [_theView frame].size.height + 6)];
-        [_theView setBackgroundColor:bezelFocused];
         //[inputManager setActiveDateSegment:[segments objectAtIndex:0]];
-    }else{
-        [_theView setBackgroundColor:bezel];
+    }
+    else
+    {
+        [self unsetThemeState:CPThemeStateEditing];
+
         [_theView setFrame:CGRectMake([_theView frame].origin.x + 4, [_theView frame].origin.y + 3, [_theView frame].size.width - 8, [_theView frame].size.height - 6)];
     }
 }
@@ -1161,23 +1174,28 @@ DatePickerDisplayPresetTime = 2;
 
 @end
 
+var DatePickerDelegateField     = @"DatePickerDelegateField",
+    DatePickerSegementsField    = @"DatePickerSegementsField",
+    DatePickerViewField         = @"DatePickerViewField",
+    DatePickerStepperField      = @"DatePickerStepperField",
+    DatePickerDateField         = @"DatePickerDateField";
+
 @implementation DatePicker (CPCoding)
-{
+
 - (id)initWithCoder:(CPCoder)aCoder
 {
     self = [super initWithCoder:aCoder];
 
     if (self)
     {
+        [self setDelegate:[aCoder decodeObjectForKey:DatePickerDelegateField]];
+        segments = [aCoder decodeObjectForKey:DatePickerSegementsField]
+        _theView = [aCoder decodeObjectForKey:DatePickerViewField];
+        _theStepper = [aCoder decodeObjectForKey:DatePickerStepperField];
+        [self setDate:[aCoder decodeObjectForKey:DatePickerDateField]];
 
-        [self setDelegate:[aCoder decodeObjectForKey:datePickerDelegate]];
-        segments = [aCoder decodeObjectForKey:datePickerSegments]
-        _theView = [aCoder decodeObjectForKey:datePickerView];
-        _theStepper = [aCoder decodeObjectForKey:datePickerStepper];
-        [self setDate:[aCoder decodeObjectForKey:datePickerDate]];
-
-        [self setNeedsLayout];
-        [self setNeedsDisplay:YES];
+        /*[self setNeedsLayout];
+        [self setNeedsDisplay:YES];*/
     }
 
     return self;
@@ -1185,13 +1203,14 @@ DatePickerDisplayPresetTime = 2;
 
 - (void)encodeWithCoder:(CPCoder)aCoder
 {
+    [super encodeWithCoder:aCoder];
+
     // This will come out nil on the other side with decodeObjectForKey:
-    [aCoder encodeObject:_date forKey:datePickerDate];
-    [aCoder encodeObject:segments forKey:datePickerSegments];
-    [aCoder encodeObject:_delegate forKey:dataPickerDelegate];
-    [aCoder encodeObject:_theView forKey:datePickerView];
-    [aCoder encodeObject:_theStepper forKey:datePickerStepper];
+    [aCoder encodeObject:_date forKey:DatePickerDateField];
+    [aCoder encodeObject:segments forKey:DatePickerSegementsField];
+    [aCoder encodeObject:_delegate forKey:DatePickerDelegateField];
+    [aCoder encodeObject:_theView forKey:DatePickerViewField];
+    [aCoder encodeObject:_theStepper forKey:DatePickerStepperField];
 }
 
-}
 @end
