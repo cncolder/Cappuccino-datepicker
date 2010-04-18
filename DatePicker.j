@@ -58,8 +58,8 @@ DatePickerDisplayPresetTime = 2;
 
 + (id)themeAttributes
 {
-    return [CPDictionary dictionaryWithObjects:[CGInsetMakeZero(), CGInsetMake(2.0, 2.0, 2.0, 2.0), [CPNull null], CGSizeMake(18, 23), CGInsetMake(2.0, 2.0, 2.0, 2.0),  [CPNull null], CGPointMake(0, 0), [CPNull null], CGPointMake(0, 11), [CPNull null], CGPointMake(0, 10)]
-                                       forKeys:[@"bezel-inset", @"content-inset", @"bezel-color", @"stepper-size", @"stepper-inset", @"stepper-up-bezel-color", @"stepper-up-offset", @"stepper-down-bezel-color",  @"stepper-down-offset", @"stepper-divider-bezel-color", @"stepper-divider-offset"]];
+    return [CPDictionary dictionaryWithObjects:[CGInsetMakeZero(), CGInsetMake(2.0, 2.0, 2.0, 2.0), [CPNull null], [CPColor clearColor], CGSizeMake(18, 23), CGInsetMake(2.0, 2.0, 2.0, 2.0),  [CPNull null], CGPointMake(0, 0), [CPNull null], CGPointMake(0, 11), [CPNull null], CGPointMake(0, 10)]
+                                       forKeys:[@"bezel-inset", @"content-inset", @"bezel-color", @"segment-focused-color", @"stepper-size", @"stepper-inset", @"stepper-up-bezel-color", @"stepper-up-offset", @"stepper-down-bezel-color",  @"stepper-down-offset", @"stepper-divider-bezel-color", @"stepper-divider-offset"]];
 }
 
 - (id)initWithFrame:aFrame
@@ -222,16 +222,19 @@ DatePickerDisplayPresetTime = 2;
     var componentRect = [self contentRectForBounds:CGRectMakeCopy([self bounds])];
     @each(var subview in [self subviews])
     {
-        var isSegement = [subview class] == DateSegment,
+        var isSegment = [subview class] == DateSegment,
             isTextField = [subview class] == CPTextField;
-        if (!isSegement && !isTextField)
+        if (!isSegment && !isTextField)
             continue;
         componentRect.size.width = [subview bounds].size.width;
         [subview setFrame:componentRect];
         [subview setFont:[self currentValueForThemeAttribute:@"font"]];
         [subview setTextColor:[self currentValueForThemeAttribute:@"text-color"]];
         // Hack to 'squeeze' divider text fields a little.
-        componentRect.origin.x += 2 + (isSegement ? componentRect.size.width-4 : 4);
+        componentRect.origin.x += 2 + componentRect.size.width - 3;
+
+        if (isSegment)
+            [subview setValue:[self valueForThemeAttribute:@"segment-focused-color"] forThemeAttribute:@"bezel-color" inState:CPThemeStateHighlighted];
     }
 }
 
@@ -866,14 +869,8 @@ DatePickerDisplayPresetTime = 2;
 {
     self = [super initWithFrame:aFrame];
 
-    if(self){
-        focusedBackground = [CPColor colorWithPatternImage:[[CPThreePartImage alloc] initWithImageSlices:
-            [
-                [[CPImage alloc] initByReferencingFile:"Resources/DatePicker/date-segment-left.png" size:CGSizeMake(4.0, 18.0)],
-                [[CPImage alloc] initByReferencingFile:"Resources/DatePicker/date-segment-center.png" size:CGSizeMake(1.0, 18.0)],
-                [[CPImage alloc] initByReferencingFile:"Resources/DatePicker/date-segment-right.png" size:CGSizeMake(4.0, 18.0)]
-            ] isVertical:NO]];
-
+    if (self)
+    {
         [self setValue:CPRightTextAlignment forThemeAttribute:@"alignment"];
     }
 
@@ -957,13 +954,13 @@ DatePickerDisplayPresetTime = 2;
 
 - (void)makeActive
 {
-    [self setBackgroundColor:focusedBackground];
+    [self setThemeState:CPThemeStateHighlighted];
     [[superController _theStepper] setDoubleValue:[self intValue]];
 }
 
 - (void)makeInactive
 {
-    [self setBackgroundColor:[CPColor clearColor]];
+    [self unsetThemeState:CPThemeStateHighlighted];
     if([self dateType] == 10)
         return;
     //now format the number like it should look...

@@ -39,14 +39,19 @@
                 [_CPCibCustomResource imageResourceWithName:"textfield-bezel-square-focused-6.png" size:CGSizeMake(6.0, 5.0)],
                 [_CPCibCustomResource imageResourceWithName:"textfield-bezel-square-focused-7.png" size:CGSizeMake(1.0, 5.0)],
                 [_CPCibCustomResource imageResourceWithName:"textfield-bezel-square-focused-8.png" size:CGSizeMake(6.0, 5.0)]
-            ]]];
+            ]]],
+        datePickerSegmentFocusedColor = PatternColor([[CPThreePartImage alloc] initWithImageSlices:
+            [
+                [_CPCibCustomResource imageResourceWithName:"datepicker-segment-left.png" size:CGSizeMake(4.0, 18.0)],
+                [_CPCibCustomResource imageResourceWithName:"datepicker-segment-center.png" size:CGSizeMake(1.0, 18.0)],
+                [_CPCibCustomResource imageResourceWithName:"datepicker-segment-right.png" size:CGSizeMake(4.0, 18.0)]
+            ] isVertical:NO]);
 
     [datepicker setBezeled:YES];
 
     [datepicker setValue:bezelColor forThemeAttribute:@"bezel-color" inState:CPThemeStateBezeled];
     [datepicker setValue:bezelFocusedColor forThemeAttribute:@"bezel-color" inState:CPThemeStateBezeled|CPThemeStateEditing];
 
-    // TODO Add support for font.
     [datepicker setValue:[CPFont systemFontOfSize:12.0] forThemeAttribute:@"font" inState:CPThemeStateBezeled];
     [datepicker setValue:[CPColor blackColor] forThemeAttribute:@"text-color"];
 
@@ -57,6 +62,8 @@
 
     [datepicker setValue:CGSizeMake(16.0, 29.0) forThemeAttribute:@"stepper-size"];
     [datepicker setValue:CGInsetMake(3.0, 0.0, 2.0, 4.0) forThemeAttribute:@"stepper-inset" inState:CPThemeStateBezeled];
+
+    [datepicker setValue:datePickerSegmentFocusedColor forThemeAttribute:@"segment-focused-color"];
 
     var upBezel = [CPColor colorWithPatternImage:[_CPCibCustomResource imageResourceWithName:"datepicker-stepper-up.png" size:CGSizeMake(12.0, 10.0)]],
         pushedUpBezel = [CPColor colorWithPatternImage:[_CPCibCustomResource imageResourceWithName:"datepicker-stepper-up-highlighted.png" size:CGSizeMake(12.0, 10.0)]],
