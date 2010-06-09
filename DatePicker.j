@@ -657,7 +657,12 @@ DatePickerDisplayPresetTime = 2;
             i = [segments objectAtIndex:i];
         }
         [self setActiveDateSegment:i];
-    }else if(key == CPRightArrowKeyCode || key == 189 || key == 188 || key == 190 || key == 191 || key == 186){
+    }
+    else if (key == CPReturnKeyCode)
+    {
+        [self sendAction:[self action] to:[self target]];
+    }
+    else if(key == CPRightArrowKeyCode || key == 189 || key == 188 || key == 190 || key == 191 || key == 186){
         if([self activeDateSegment] == [segments objectAtIndex:[segments count] -1]){
             i = [segments objectAtIndex:0];
         }else{
