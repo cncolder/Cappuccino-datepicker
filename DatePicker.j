@@ -122,8 +122,10 @@ DatePickerDisplayPresetTime = 2;
 {
     [super setTheme:aTheme];
 
-    @each(view in [self subviews])
+    for (view in [self subviews])
+    {
         [view setTheme:aTheme];
+    }
 
     var upButton = [_theStepper upButton],
         downButton = [_theStepper downButton],
@@ -220,7 +222,7 @@ DatePickerDisplayPresetTime = 2;
 
     // Layout the components.
     var componentRect = [self contentRectForBounds:CGRectMakeCopy([self bounds])];
-    @each(var subview in [self subviews])
+    for (var subview in [self subviews])
     {
         var isSegment = [subview class] == DateSegment,
             isTextField = [subview class] == CPTextField;
